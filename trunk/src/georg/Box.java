@@ -67,7 +67,7 @@ public class Box {
 
 			ArrayList<Entry> files = new DropList().getList();
 			createPodCast_xml(files);
-			createStreamList_m3u(files,"list");
+			createStreamList_m3u(files, "list");
 		}
 
 		private int getRandomFileName() {
@@ -90,15 +90,15 @@ public class Box {
 		}
 	}
 
-	public void createStreamList_m3u(ArrayList<Entry> files,String fileName) {
+	public void createStreamList_m3u(ArrayList<Entry> files, String fileName) {
 		Collections.shuffle(files);
 		String m3u = "";
 		m3u += "#EXTM3U\n";
-//		m3u += Fritz.www_path + "?id=88\n";
+		//		m3u += Fritz.www_path + "?id=88\n";
 		for (Entry file : files) {
 			m3u += geturlFromFileName(file.fileName()) + "\n";
 		}
-		writeFile(fileName+".m3u", m3u);
+		writeFile(fileName + ".m3u", m3u);
 	}
 
 	public void createPodCast_xml(ArrayList<Entry> files) {
@@ -166,24 +166,38 @@ public class Box {
 
 	class DropStream {
 
-		public void stream(HttpServletResponse response,String sessionID) {
+		public void stream(HttpServletResponse response, String sessionID) {
 			System.out.println("start streaming");
 			try {
-				File file=new File(Fritz.root_path + "/list_" + sessionID+".m3u");
-				if(!file.exists()){
+				File file = new File(Fritz.root_path + "/list_" + sessionID + ".m3u");
+				if (!file.exists()) {
 					ArrayList<Entry> files = new DropList().getList();
-					createStreamList_m3u(files,"list_"+sessionID);
-				}		
-				
-				FileInputStream fis=new FileInputStream(file);
-				
-				response.setContentType("application");
-				response.setContentLength((int)file.length());
-				response.setHeader("Content-Disposition", "inline;filename=list_"+sessionID+".m3u");
+					createStreamList_m3u(files, "list_" + sessionID);
+				}
+
+				FileInputStream fis = new FileInputStream(file);
+
+				response.setContentType("audio/x-mpegurl");
+				response.setContentLength((int) file.length());
+
+				// Set to expire far in the past.
+				//response.setHeader("Expires", "Sat, 6 May 1995 12:00:00 GMT");
+
+				// Set standard HTTP/1.1 no-cache headers.
+				//response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+
+				// Set IE extended HTTP/1.1 no-cache headers (use addHeader).
+				//response.addHeader("Cache-Control", "post-check=0, pre-check=0");
+
+				// Set standard HTTP/1.0 no-cache header.
+				//response.setHeader("Pragma", "no-cache");
+
+				response.setHeader("Content-Disposition", "inline; filename=list_" + sessionID + ".m3u");
 				ServletOutputStream out = response.getOutputStream();
 				byte[] outputByte = new byte[1024];
-				while (fis.read(outputByte, 0, 1024) != -1) {					
-					out.write(outputByte, 0, 1024);			
+				int i;
+				while ((i = fis.read()) != -1) {
+					out.write(i);
 				}
 				fis.close();
 				out.flush();
@@ -294,6 +308,10 @@ class DropSession {
 			s.removeAttribute("accessTokenKey");
 			apis.remove(ats);
 			secrets.remove(atk);
+		}
+		File file = new File(Fritz.root_path + "/list_" + s.getId() + ".m3u");
+		if (file.exists()) {
+			file.delete();
 		}
 		s.removeAttribute("accessTokenKey");
 		s.invalidate();

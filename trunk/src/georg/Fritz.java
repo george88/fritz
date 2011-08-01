@@ -39,11 +39,11 @@ public class Fritz extends HttpServlet implements HttpSessionListener {
 		if (request.getParameter("id") != null) {
 			if (request.getParameter("id").equals(88)) {
 				Box box = new Box(request);
-				box.createStreamList_m3u(box.new DropList().getList(),"list");
+				box.createStreamList_m3u(box.new DropList().getList(), "list");
 			} else
 				new Box(request).new DropDownload(request.getParameter("id")).download(response);
 		} else if (request.getParameter("stream") != null) {
-			new Box(request).new DropStream().stream(response,request.getSession(false).getId());
+			new Box(request).new DropStream().stream(response, request.getSession(false).getId());
 		} else {
 			request.setAttribute("index.jsp", "index.jsp");
 			new Box(request).new DropList().printList(request);

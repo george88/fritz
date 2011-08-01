@@ -122,7 +122,7 @@
 	<div id="output" class="clearfix">
 		<ul id="output-listing01"></ul>
 	</div>
-	<%    
+	<%
 		Object fl=request.getAttribute("filelist");
         ArrayList<Entry> files = fl!=null?(ArrayList<Entry>)fl:null;
 		String dir="";
@@ -132,8 +132,21 @@
     %>
     <br />
     <input type="file" name="file" multiple="multiple" />
-    <div><%=size/1000000 %> MB verbraucht!</div>
-    <div><%=files!=null?""+files.size():"" %> Lieder vorhanden.</div>
+    <table><tr>
+    	<td>
+		    <div><%=size/1000000 %> MB verbraucht!</div>
+		    <div><%=files!=null?""+files.size():"" %> Lieder vorhanden.</div>
+   		</td>
+   		<td>
+   			<div style="background-color: blue;" ><a href=""><span><img alt="createPodcast" src="bilder/playlist.png" height="50px" style="float: inherit;" ></span></a></div>
+   		</td>
+   		<td>
+   			<div style="background-color: blue;" ><a href=""><span><img alt="createm3u" src="bilder/webradio.png" height="50px" style="float: inherit;" ></span></a></div>
+   		</td>
+   		<td>
+   			<div style="background-color: blue;" ><a href=""><span><img alt="resetConf" src="bilder/reset.png" height="50px" style="float: inherit;" ></span></a></div>
+   		</td>
+    </tr></table>
     <div style="background: yellow; overflow: auto; font-weight: bold; border: 2px dotted #fff;-moz-border-radius: 15px; padding: 0px 0px; position: relative; width: 95%; text-align: center;  height: 250px; top: 25px;">
 	   <table>
        <%
