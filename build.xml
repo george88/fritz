@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<project name="Fritz" basedir="." 
+     default="war">
+  <target name="war" description="war erzeugen">
+      <jar destfile="C:/Dokumente und Einstellungen/JFP/Desktop/Fritz.war" update="true" >
+         <fileset dir="C:/Dokumente und Einstellungen/JFP/workspaceJAVA/.metadata/.plugins/org.eclipse.wst.server.core/tmp1/wtpwebapps/Fritz">
+            <include name="**/*.*"/>
+         </fileset>
+      </jar>
+   </target>
+</project> 
