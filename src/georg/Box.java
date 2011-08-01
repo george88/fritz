@@ -15,6 +15,10 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+
+import org.farng.mp3.MP3File;
+import org.farng.mp3.TagException;
+
 import com.dropbox.client.DropboxAPI;
 import com.dropbox.client.DropboxAPI.Config;
 import com.dropbox.client.DropboxAPI.Entry;
@@ -76,10 +80,10 @@ public class Box {
 	}
 
 	private String geturlFromFileName(String fileName) {
-		return Fritz.www_path + "?id=" + fileName;
+		return Fritz.www_path + "/Fritz?id=" + fileName;
 	}
 
-	private void writeFile(String fileName, String content) {
+	public void writeFile(String fileName, String content) {
 		try {
 			FileOutputStream fos = new FileOutputStream(Fritz.root_path + "/" + fileName);
 			Writer out = new OutputStreamWriter(fos, "UTF8");
@@ -90,12 +94,25 @@ public class Box {
 		}
 	}
 
+	public String getMp3Duration(File f) {
+		long duration = 0L;
+		try {
+			duration = new Long(new MP3File(f).getID3v2Tag().getFrame("TLEN").getBody().getObject("Text") + "") / 1000L;
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (TagException e) {
+			e.printStackTrace();
+		}
+		return "" + duration;
+	}
+
 	public void createStreamList_m3u(ArrayList<Entry> files, String fileName) {
 		Collections.shuffle(files);
 		String m3u = "";
 		m3u += "#EXTM3U\n";
 		//		m3u += Fritz.www_path + "?id=88\n";
 		for (Entry file : files) {
+			//			m3u += "#EXTINF:221,\n";
 			m3u += geturlFromFileName(file.fileName()) + "\n";
 		}
 		writeFile(fileName + ".m3u", m3u);
@@ -145,6 +162,17 @@ public class Box {
 				FileDownload fd = api.getFileStream("dropbox", Fritz.drop_path + "/" + fileName, fileName);
 				response.setContentType("audio/mpeg");
 				response.setContentLength((int) fd.length);
+				// Set to expire far in the past.
+				response.setHeader("Expires", "Sat, 6 May 1995 12:00:00 GMT");
+
+				// Set standard HTTP/1.1 no-cache headers.
+				response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+
+				// Set IE extended HTTP/1.1 no-cache headers (use addHeader).
+				response.addHeader("Cache-Control", "post-check=0, pre-check=0");
+
+				// Set standard HTTP/1.0 no-cache header.
+				response.setHeader("Pragma", "no-cache");
 
 				response.setHeader("Content-Disposition", "inline;filename=" + fileName);
 				ServletOutputStream out = response.getOutputStream();
@@ -192,9 +220,9 @@ public class Box {
 				// Set standard HTTP/1.0 no-cache header.
 				//response.setHeader("Pragma", "no-cache");
 
-				response.setHeader("Content-Disposition", "inline; filename=list_" + sessionID + ".m3u");
+				response.setHeader("Content-Disposition", "attachment; filename=list_" + sessionID + ".m3u");
 				ServletOutputStream out = response.getOutputStream();
-				byte[] outputByte = new byte[1024];
+				//				byte[] outputByte = new byte[1024];
 				int i;
 				while ((i = fis.read()) != -1) {
 					out.write(i);

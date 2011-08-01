@@ -36,15 +36,24 @@ public class Fritz extends HttpServlet implements HttpSessionListener {
 	 */
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		System.out.println("urL: " + request.getRequestURL());
 		if (request.getParameter("id") != null) {
-			if (request.getParameter("id").equals(88)) {
-				Box box = new Box(request);
-				box.createStreamList_m3u(box.new DropList().getList(), "list");
-			} else
-				new Box(request).new DropDownload(request.getParameter("id")).download(response);
+			System.out.println("request: download");
+			new Box(request).new DropDownload(request.getParameter("id")).download(response);
 		} else if (request.getParameter("stream") != null) {
+			System.out.println("request: stream");
 			new Box(request).new DropStream().stream(response, request.getSession(false).getId());
+		} else if (request.getParameter("reset") != null) {
+			System.out.println("request: reset");
+			KonfigFiles.reset();
+			request.getRequestDispatcher("/index.jsp").forward(request, response);
+		} else if (request.getParameter("podcast") != null) {
+			System.out.println("request: podcast");
+			Box box = new Box(request);
+			box.createPodCast_xml(box.new DropList().getList());
+			request.getRequestDispatcher("/list.xml").forward(request, response);
 		} else {
+			System.out.println("request: default");
 			request.setAttribute("index.jsp", "index.jsp");
 			new Box(request).new DropList().printList(request);
 			request.getRequestDispatcher("/index.jsp").forward(request, response);
@@ -78,5 +87,9 @@ public class Fritz extends HttpServlet implements HttpSessionListener {
 	public void sessionDestroyed(HttpSessionEvent se) {
 		System.out.println("Session destroyed");
 		DropSession.dropSession(se.getSession());
+	}
+
+	public static void download() {
+
 	}
 }

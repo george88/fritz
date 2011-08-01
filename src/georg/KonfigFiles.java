@@ -22,6 +22,10 @@ public class KonfigFiles {
 
 	public static HashMap<String, String> props = new HashMap<String, String>();
 
+	public static void reset() {
+		props.clear();
+	}
+
 	public static String getString(String key) {
 		String file = key.substring(0, key.indexOf("_"));
 		key = key.substring(key.indexOf("_") + 1);

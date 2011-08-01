@@ -1,6 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <%@page import="georg.Fritz"%>
 <% 
+
 	if(request.getAttribute("index.jsp") == null || (request.getAttribute("index.jsp") != null && !request.getAttribute("index.jsp").equals("index.jsp")))
 		response.sendRedirect("Fritz");
 %>
@@ -138,13 +139,13 @@
 		    <div><%=files!=null?""+files.size():"" %> Lieder vorhanden.</div>
    		</td>
    		<td>
-   			<div style="background-color: blue;" ><a href=""><span><img alt="createPodcast" src="bilder/playlist.png" height="50px" style="float: inherit;" ></span></a></div>
+   			<div style="background-color: blue;" ><a href="?podcast=show" target="_blank" ><span><img alt="createPodcast" src="bilder/playlist.png" height="50px" style="float: inherit;" ></span></a></div>
    		</td>
    		<td>
-   			<div style="background-color: blue;" ><a href=""><span><img alt="createm3u" src="bilder/webradio.png" height="50px" style="float: inherit;" ></span></a></div>
+   			<div style="background-color: blue;" ><a href="?stream=ON" target="_blank" ><span><img alt="createm3u" src="bilder/webradio.png" height="50px" style="float: inherit;" ></span></a></div>
    		</td>
    		<td>
-   			<div style="background-color: blue;" ><a href=""><span><img alt="resetConf" src="bilder/reset.png" height="50px" style="float: inherit;" ></span></a></div>
+   			<div style="background-color: blue;" ><a href="?reset=config"><span><img alt="resetConf" src="bilder/reset.png" height="50px" style="float: inherit;" ></span></a></div>
    		</td>
     </tr></table>
     <div style="background: yellow; overflow: auto; font-weight: bold; border: 2px dotted #fff;-moz-border-radius: 15px; padding: 0px 0px; position: relative; width: 95%; text-align: center;  height: 250px; top: 25px;">
@@ -178,6 +179,6 @@
        %>
        </table>	
     </div>
-	
+	<% out.println("test: "+request.getContextPath());%>
 </body>
 </html>
