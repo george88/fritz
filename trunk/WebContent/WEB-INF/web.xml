@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" id="WebApp_ID" version="2.5">
+  <display-name>Fritz</display-name>
+  <welcome-file-list>
+    <welcome-file>Fritz</welcome-file>
+  </welcome-file-list>
+  <servlet>
+    <description></description>
+    <display-name>Fritz</display-name>
+    <servlet-name>Fritz</servlet-name>
+    <servlet-class>georg.Fritz</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>Fritz</servlet-name>
+    <url-pattern>/Fritz</url-pattern>
+  </servlet-mapping>
+  <listener>
+<listener-class>
+georg.Fritz
+</listener-class>
+</listener>
+<error-page>
+    <error-code>404</error-code>
+    <location>/Fritz</location>
+  </error-page>
+  <error-page>
+    <error-code>500</error-code>
+    <location>/Fritz</location>
+  </error-page>
+</web-app>
