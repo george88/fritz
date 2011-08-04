@@ -37,12 +37,13 @@ public class Fritz extends HttpServlet implements HttpSessionListener {
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		System.out.println("urL: " + request.getRequestURL());
+		System.out.println("user_agnet: " + request.getHeader("user-agent"));
 		if (request.getParameter("id") != null) {
-			System.out.println("request: download");
+			System.out.println("request: download => id = " + request.getParameter("id"));
 			new Box(request).new DropDownload(request.getParameter("id")).download(response);
 		} else if (request.getParameter("stream") != null) {
 			System.out.println("request: stream");
-			new Box(request).new DropStream().stream(response, request.getSession(false).getId());
+			new Box(request).new DropStream().stream(response, request.getSession().getId());
 		} else if (request.getParameter("reset") != null) {
 			System.out.println("request: reset");
 			KonfigFiles.reset();
@@ -80,12 +81,12 @@ public class Fritz extends HttpServlet implements HttpSessionListener {
 
 	@Override
 	public void sessionCreated(HttpSessionEvent se) {
-		System.out.println("Session created");
+		System.out.println("Session created with id = " + se.getSession().getId());
 	}
 
 	@Override
 	public void sessionDestroyed(HttpSessionEvent se) {
-		System.out.println("Session destroyed");
+		System.out.println("Session destroyed with id = " + se.getSession().getId());
 		DropSession.dropSession(se.getSession());
 	}
 
