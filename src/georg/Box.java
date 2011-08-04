@@ -163,23 +163,27 @@ public class Box {
 				response.setContentType("audio/mpeg");
 				response.setContentLength((int) fd.length);
 				// Set to expire far in the past.
-				response.setHeader("Expires", "Sat, 6 May 1995 12:00:00 GMT");
+				//				response.setHeader("Expires", "Sat, 6 May 1995 12:00:00 GMT");
 
 				// Set standard HTTP/1.1 no-cache headers.
-				response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+				//				response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
 
 				// Set IE extended HTTP/1.1 no-cache headers (use addHeader).
-				response.addHeader("Cache-Control", "post-check=0, pre-check=0");
+				//				response.addHeader("Cache-Control", "post-check=0, pre-check=0");
 
 				// Set standard HTTP/1.0 no-cache header.
-				response.setHeader("Pragma", "no-cache");
+				//				response.setHeader("Pragma", "no-cache");
 
 				response.setHeader("Content-Disposition", "inline;filename=" + fileName);
 				ServletOutputStream out = response.getOutputStream();
 
-				byte[] outputByte = new byte[1024];
-				while (fd.is.read(outputByte, 0, 1024) != -1) {
-					out.write(outputByte, 0, 1024);
+				//				byte[] outputByte = new byte[1024];
+				//				while (fd.is.read(outputByte, 0, 1024) != -1) {
+				//					out.write(outputByte, 0, 1024);
+				//				}
+				int i;
+				while ((i = fd.is.read()) != -1) {
+					out.write(i);
 				}
 				fd.is.close();
 				out.flush();
@@ -197,37 +201,41 @@ public class Box {
 		public void stream(HttpServletResponse response, String sessionID) {
 			System.out.println("start streaming");
 			try {
-				File file = new File(Fritz.root_path + "/list_" + sessionID + ".m3u");
-				if (!file.exists()) {
-					ArrayList<Entry> files = new DropList().getList();
-					createStreamList_m3u(files, "list_" + sessionID);
-				}
 
-				FileInputStream fis = new FileInputStream(file);
-
-				response.setContentType("audio/x-mpegurl");
-				response.setContentLength((int) file.length());
+				response.setContentType("audio/mpeg");
 
 				// Set to expire far in the past.
 				//response.setHeader("Expires", "Sat, 6 May 1995 12:00:00 GMT");
 
 				// Set standard HTTP/1.1 no-cache headers.
-				//response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+				response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
 
 				// Set IE extended HTTP/1.1 no-cache headers (use addHeader).
-				//response.addHeader("Cache-Control", "post-check=0, pre-check=0");
+				response.addHeader("Cache-Control", "post-check=0, pre-check=0");
 
 				// Set standard HTTP/1.0 no-cache header.
-				//response.setHeader("Pragma", "no-cache");
+				response.setHeader("Pragma", "no-cache");
 
-				response.setHeader("Content-Disposition", "attachment; filename=list_" + sessionID + ".m3u");
+				response.setHeader("Content-Disposition", "inline; filename=stream.mp3");
 				ServletOutputStream out = response.getOutputStream();
-				//				byte[] outputByte = new byte[1024];
 				int i;
-				while ((i = fis.read()) != -1) {
-					out.write(i);
+				ArrayList<Entry> files = new DropList().getList();
+				Collections.shuffle(files);
+				for (Entry file : files) {
+					FileDownload fd = api.getFileStream("dropbox", Fritz.drop_path + "/" + file.fileName(), "stream.mp3");
+					byte[] b = new byte[1024];
+
+					for (i = 0; i < 128; i++)
+						fd.is.read();
+					while (fd.is.read(b, 0, 1024) != -1) {
+						try {
+							out.write(b, 0, 1024);
+						} catch (Exception e) {
+						}
+
+					}
+					System.out.println("nextSong....");
 				}
-				fis.close();
 				out.flush();
 				out.close();
 
@@ -237,6 +245,50 @@ public class Box {
 			System.out.println("finished streaming");
 
 		}
+		//creates if not exist yet a sessionial m3u file and send it
+		//		public void stream(HttpServletResponse response, String sessionID) {
+		//			System.out.println("start streaming");
+		//			try {
+		//				File file = new File(Fritz.root_path + "/list_" + sessionID + ".m3u");
+		//				if (!file.exists()) {
+		//					ArrayList<Entry> files = new DropList().getList();
+		//					createStreamList_m3u(files, "list_" + sessionID);
+		//				}
+		//
+		//				FileInputStream fis = new FileInputStream(file);
+		//
+		//				response.setContentType("audio/x-mpegurl");
+		//				response.setContentLength((int) file.length());
+		//
+		//				// Set to expire far in the past.
+		//				//response.setHeader("Expires", "Sat, 6 May 1995 12:00:00 GMT");
+		//
+		//				// Set standard HTTP/1.1 no-cache headers.
+		//				//response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+		//
+		//				// Set IE extended HTTP/1.1 no-cache headers (use addHeader).
+		//				//response.addHeader("Cache-Control", "post-check=0, pre-check=0");
+		//
+		//				// Set standard HTTP/1.0 no-cache header.
+		//				///response.setHeader("Pragma", "no-cache");
+		//
+		//				response.setHeader("Content-Disposition", "attachment; filename=list_" + sessionID + ".m3u");
+		//				ServletOutputStream out = response.getOutputStream();
+		//				//				byte[] outputByte = new byte[1024];
+		//				int i;
+		//				while ((i = fis.read()) != -1) {
+		//					out.write(i);
+		//				}
+		//				fis.close();
+		//				out.flush();
+		//				out.close();
+		//
+		//			} catch (Exception e) {
+		//				e.printStackTrace();
+		//			}
+		//			System.out.println("finished streaming");
+		//
+		//		}
 	}
 
 	class DropList {
@@ -290,34 +342,49 @@ class DropSession {
 	private static Config config;
 
 	public static DropboxAPI getDropSession(HttpServletRequest request) {
-		HttpSession s = request.getSession(true);
-		s.setMaxInactiveInterval(KonfigFiles.getInt(KonfigFiles.FRITZ_SESSION_TIME));
-		Object atk = s.getAttribute("accessTokenKey");
+		//		HttpSession s = request.getSession(false);
+		//		s.setMaxInactiveInterval(KonfigFiles.getInt(KonfigFiles.FRITZ_SESSION_TIME));
+		//		Object atk = s.getAttribute("accessTokenKey");
 		DropboxAPI api = null;
-		if (atk != null && secrets.get(atk) != null) {
-			String ats = secrets.get(atk);
-			api = apis.get(ats);
+		//		if (atk != null && secrets.get(atk) != null) {
+		//			String ats = secrets.get(atk);
+		//			api = apis.get(ats);
+		//			if (!api.isAuthenticated()) {
+		//				api = authenticate(api, getConfig(api), atk.toString(), ats);
+		//				apis.put(ats, api);
+		//				if (!api.isAuthenticated()) {
+		//					secrets.remove(ats);
+		//					apis.remove(api);
+		//
+		//					Config conf = authenticate_full(api, getConfig(api), Fritz.drop_user, Fritz.drop_pw);
+		//					api = authenticate(api, conf, conf.accessTokenKey, conf.accessTokenSecret);
+		//					apis.put(conf.accessTokenSecret, api);
+		//					s.setAttribute("accessTokenKey", conf.accessTokenKey);
+		//					secrets.put(conf.accessTokenKey, conf.accessTokenSecret);
+		//				}
+		//			}
+		//		} else {
+		//			api = new DropboxAPI();
+		//			Config conf = authenticate_full(api, getConfig(api), Fritz.drop_user, Fritz.drop_pw);
+		//			api = authenticate(api, conf, conf.accessTokenKey, conf.accessTokenSecret);
+		//			apis.put(conf.accessTokenSecret, api);
+		//			s.setAttribute("accessTokenKey", conf.accessTokenKey);
+		//			secrets.put(conf.accessTokenKey, conf.accessTokenSecret);
+		//		}
+		api = apis.get("0");
+		if (api != null) {
+			System.out.println("api exists");
 			if (!api.isAuthenticated()) {
-				api = authenticate(api, getConfig(api), atk.toString(), ats);
-				apis.put(ats, api);
-				if (!api.isAuthenticated()) {
-					secrets.remove(ats);
-					apis.remove(api);
-
-					Config conf = authenticate_full(api, getConfig(api), "gn-20@gmx.de", "chieftec");
-					api = authenticate(api, conf, conf.accessTokenKey, conf.accessTokenSecret);
-					apis.put(conf.accessTokenSecret, api);
-					s.setAttribute("accessTokenKey", conf.accessTokenKey);
-					secrets.put(conf.accessTokenKey, conf.accessTokenSecret);
-				}
+				System.out.println("api needed to  authenticate");
+				Config conf = authenticate_full(api, getConfig(api), Fritz.drop_user, Fritz.drop_pw);
+				api = authenticate(api, conf, conf.accessTokenKey, conf.accessTokenSecret);
 			}
 		} else {
+			System.out.println("api not exists");
 			api = new DropboxAPI();
 			Config conf = authenticate_full(api, getConfig(api), Fritz.drop_user, Fritz.drop_pw);
 			api = authenticate(api, conf, conf.accessTokenKey, conf.accessTokenSecret);
-			apis.put(conf.accessTokenSecret, api);
-			s.setAttribute("accessTokenKey", conf.accessTokenKey);
-			secrets.put(conf.accessTokenKey, conf.accessTokenSecret);
+			apis.put("0", api);
 		}
 
 		return api;
