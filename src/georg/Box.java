@@ -198,12 +198,12 @@ public class Box {
 	class DropStream {
 
 		public void stream(HttpServletResponse response, String sessionID) {
-			System.out.println("start streaming with id: " + sessionID);
+			System.out.println("id: " + sessionID + ".....start streaming....");
 			try {
 
 				response.setContentType("audio/mpeg");
 				// Set to expire far in the past.
-				response.setHeader("Expires", "Sat, 6 May 1995 12:00:00 GMT");
+				//				response.setHeader("Expires", "Sat, 6 May 1995 12:00:00 GMT");
 
 				// Set standard HTTP/1.1 no-cache headers.
 				response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
@@ -212,33 +212,51 @@ public class Box {
 				response.addHeader("Cache-Control", "post-check=0, pre-check=0");
 
 				// Set standard HTTP/1.0 no-cache header.
-				response.setHeader("Pragma", "no-cache");
+				//				response.setHeader("Pragma", "no-cache");
 				response.setHeader("Content-Disposition", "inline; filename=stream.mp3");
 				ArrayList<Entry> files = new DropList().getList();
 				ServletOutputStream out = response.getOutputStream();
 				Collections.shuffle(files);
-				response.setContentLength(-1);
+				//				response.setContentLength(-1);
+				//				response.setHeader("Content-Length", "-1");
+
 				for (Entry file : files) {
-					response.setHeader("Content-Length", "-1");
-					FileDownload fd = api.getFileStream("dropbox", Fritz.drop_path + "/" + file.fileName(), "stream.mp3");
-					//					byte[] header = new byte[1024];
-					//					fd.is.read(header, 0, 1024);
+					FileDownload fd = null;
+					try {
+						fd = api.getFileStream("dropbox", Fritz.drop_path + "/" + file.fileName(), "stream.mp3");
+
+					} catch (Exception e) {
+						System.out.println("id:" + sessionID + "....Exception....getdownload\n" + e.getCause());
+					}
+					byte[] header = new byte[4096];
+					fd.is.read(header, 0, 4096);
 					//					String h = new String(header);
 					//					System.out.println("\n\nheader(1024 byte):\n" + h + "\n\n");
 
-					byte[] b = new byte[1024];
-					while (fd.is.read(b, 0, 1024) != -1) {
-						out.write(b, 0, 1024);
+					byte[] b = new byte[1];
+					int i = 0;
+					while (fd.is.read(b, 0, 1) != -1) {
+						try {
+							out.write(b, 0, 1);
+						} catch (Exception e) {
+							if (i > 3)
+								break;
+							System.out.println("id:" + sessionID + "....Exception....writeOutPut No: " + i + "\n" + e.getCause());
+							i++;
+						}
 					}
-					System.out.println("nextSong....");
+					if (i > 3)
+						break;
+					System.out.println("id:" + sessionID + " ....nextSong....");
 
 				}
 				out.flush();
 				out.close();
 			} catch (Exception e) {
-				//				e.printStackTrace();
+				System.out.println("id:" + sessionID + "....Exception....LAST\n" + e.getCause());
+
 			}
-			System.out.println("finished streaming with id: " + sessionID);
+			System.out.println("id: " + sessionID + ".....finished streaming....");
 
 		}
 		//creates if not exist yet a sessionial m3u file and send it
