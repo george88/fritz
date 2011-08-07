@@ -43,7 +43,7 @@ public class Fritz extends HttpServlet implements HttpSessionListener {
 			new Box(request).new DropDownload(request.getParameter("id")).download(response);
 		} else if (request.getParameter("stream") != null) {
 			System.out.println("request: stream");
-			new Box(request).new DropStream().stream(response, request.getSession().getId());
+			new Box(request).new DropStream().stream(response, request.getSession().getId(), request.getParameter("stream"));
 		} else if (request.getParameter("reset") != null) {
 			System.out.println("request: reset");
 			KonfigFiles.reset();
@@ -51,7 +51,7 @@ public class Fritz extends HttpServlet implements HttpSessionListener {
 		} else if (request.getParameter("podcast") != null) {
 			System.out.println("request: podcast");
 			Box box = new Box(request);
-			box.createPodCast_xml(box.new DropList().getList());
+			box.createPodCast_xml(box.new DropList().getList(null));
 			request.getRequestDispatcher("/list.xml").forward(request, response);
 		} else {
 			System.out.println("request: default");
