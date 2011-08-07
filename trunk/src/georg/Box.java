@@ -68,7 +68,7 @@ public class Box {
 			}
 			System.out.println("finished uploading");
 
-			ArrayList<Entry> files = new DropList().getList();
+			ArrayList<Entry> files = new DropList().getList(null);
 			createPodCast_xml(files);
 			createStreamList_m3u(files, "list");
 		}
@@ -197,7 +197,7 @@ public class Box {
 
 	class DropStream {
 
-		public void stream(HttpServletResponse response, String sessionID) {
+		public void stream(HttpServletResponse response, String sessionID, String stream) {
 			System.out.println("id: " + sessionID + ".....start streaming....");
 			try {
 
@@ -214,7 +214,7 @@ public class Box {
 				// Set standard HTTP/1.0 no-cache header.
 				//				response.setHeader("Pragma", "no-cache");
 				response.setHeader("Content-Disposition", "inline; filename=stream.mp3");
-				ArrayList<Entry> files = new DropList().getList();
+				ArrayList<Entry> files = new DropList().getList(stream);
 				ServletOutputStream out = response.getOutputStream();
 				Collections.shuffle(files);
 				//				response.setContentLength(-1);
@@ -323,8 +323,8 @@ public class Box {
 
 		}
 
-		public ArrayList<Entry> getList() {
-			Entry entry = api.metadata("dropbox", Fritz.drop_path, 1000, "", true);
+		public ArrayList<Entry> getList(String dir) {
+			Entry entry = api.metadata("dropbox", Fritz.drop_path + (dir != null && !dir.equals("ON") ? "/" + dir : ""), 1000, "", true);
 			return entry.contents;
 		}
 	}
