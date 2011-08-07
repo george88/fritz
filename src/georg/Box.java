@@ -222,31 +222,23 @@ public class Box {
 
 				for (Entry file : files) {
 					FileDownload fd = null;
-					try {
-						fd = api.getFileStream("dropbox", Fritz.drop_path + "/" + file.fileName(), "stream.mp3");
+					fd = api.getFileStream("dropbox", Fritz.drop_path + "/" + file.fileName(), "stream.mp3");
 
-					} catch (Exception e) {
-						System.out.println("id:" + sessionID + "....Exception....getdownload\n" + e.getCause());
-					}
 					byte[] header = new byte[4096];
 					fd.is.read(header, 0, 4096);
 					//					String h = new String(header);
 					//					System.out.println("\n\nheader(1024 byte):\n" + h + "\n\n");
 
-					byte[] b = new byte[1];
+					byte[] b = new byte[128];
 					int i = 0;
-					while (fd.is.read(b, 0, 1) != -1) {
-						try {
-							out.write(b, 0, 1);
-						} catch (Exception e) {
-							if (i > 3)
-								break;
-							System.out.println("id:" + sessionID + "....Exception....writeOutPut No: " + i + "\n" + e.getCause());
-							i++;
-						}
+					long length = fd.length;
+					while (fd.is.read(b, 0, 128) != -1) {
+						out.write(b, 0, 128);
+						length -= 128;
+						if (length < 1024)
+							break;
 					}
-					if (i > 3)
-						break;
+
 					System.out.println("id:" + sessionID + " ....nextSong....");
 
 				}
