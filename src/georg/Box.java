@@ -106,7 +106,8 @@ public class Box {
 
 	public void writeFile(String fileName, String content) {
 		try {
-			FileOutputStream fos = new FileOutputStream(Fritz.root_path + "/" + fileName);
+			FileOutputStream fos = new FileOutputStream(Fritz.root_path + "/"
+					+ fileName);
 			Writer out = new OutputStreamWriter(fos, "UTF8");
 			out.write(content);
 			out.close();
@@ -118,7 +119,9 @@ public class Box {
 	public String getMp3Duration(File f) {
 		long duration = 0L;
 		try {
-			duration = new Long(new MP3File(f).getID3v2Tag().getFrame("TLEN").getBody().getObject("Text") + "") / 1000L;
+			duration = new Long(new MP3File(f).getID3v2Tag().getFrame("TLEN")
+					.getBody().getObject("Text")
+					+ "") / 1000L;
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (TagException e) {
@@ -131,9 +134,9 @@ public class Box {
 		Collections.shuffle(files);
 		String m3u = "";
 		m3u += "#EXTM3U\n";
-		//		m3u += Fritz.www_path + "?id=88\n";
+		// m3u += Fritz.www_path + "?id=88\n";
 		for (Entry file : files) {
-			//			m3u += "#EXTINF:221,\n";
+			// m3u += "#EXTINF:221,\n";
 			m3u += geturlFromFileName(file.fileName()) + "\n";
 		}
 		writeFile(fileName + ".m3u", m3u);
@@ -153,16 +156,18 @@ public class Box {
 		xml += "\t\t<language>de-de</language>\n";
 
 		for (Entry file : files) {
-			//			try {
-			//				ID3v1 tag = new ID3v1(new RandomAccessFile(new File(""), "r"));
-			//			} catch (Exception e) {
-			//				e.printStackTrace();
-			//			}
-			//			getfromTagMp3($dir."/".$file);$title=$title["song"]." - ".$title["artist"];
+			// try {
+			// ID3v1 tag = new ID3v1(new RandomAccessFile(new File(""), "r"));
+			// } catch (Exception e) {
+			// e.printStackTrace();
+			// }
+			// getfromTagMp3($dir."/".$file);$title=$title["song"]." - ".$title["artist"];
 			String title = "";
 			xml += "\t\t<item>\n";
 			xml += "\t\t\t<title>" + title + "</title>\n";
-			xml += "\t\t\t<enclosure url=\"" + geturlFromFileName(file.fileName()) + "\" type=\"audio/mpeg\" />\n";
+			xml += "\t\t\t<enclosure url=\""
+					+ geturlFromFileName(file.fileName())
+					+ "\" type=\"audio/mpeg\" />\n";
 			xml += "\t\t</item>\n";
 		}
 		xml += "\t</channel>\n";
@@ -185,27 +190,32 @@ public class Box {
 		public void download() {
 			System.out.println("start downloading");
 			try {
-				FileDownload fd = api.getFileStream("dropbox", Fritz.drop_path + "/" + fileName, fileName);
+				FileDownload fd = api.getFileStream("dropbox", Fritz.drop_path
+						+ "/" + fileName, fileName);
 				response.setContentType("audio/mpeg");
 				response.setContentLength((int) fd.length);
 				// Set to expire far in the past.
-				//				response.setHeader("Expires", "Sat, 6 May 1995 12:00:00 GMT");
+				// response.setHeader("Expires",
+				// "Sat, 6 May 1995 12:00:00 GMT");
 
 				// Set standard HTTP/1.1 no-cache headers.
-				//				response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+				// response.setHeader("Cache-Control",
+				// "no-store, no-cache, must-revalidate");
 
 				// Set IE extended HTTP/1.1 no-cache headers (use addHeader).
-				//				response.addHeader("Cache-Control", "post-check=0, pre-check=0");
+				// response.addHeader("Cache-Control",
+				// "post-check=0, pre-check=0");
 
 				// Set standard HTTP/1.0 no-cache header.
-				//				response.setHeader("Pragma", "no-cache");
+				// response.setHeader("Pragma", "no-cache");
 
-				response.setHeader("Content-Disposition", "inline;filename=" + fileName);
+				response.setHeader("Content-Disposition", "inline;filename="
+						+ fileName);
 
-				//				byte[] outputByte = new byte[1024];
-				//				while (fd.is.read(outputByte, 0, 1024) != -1) {
-				//					out.write(outputByte, 0, 1024);
-				//				}
+				// byte[] outputByte = new byte[1024];
+				// while (fd.is.read(outputByte, 0, 1024) != -1) {
+				// out.write(outputByte, 0, 1024);
+				// }
 				int i;
 				while ((i = fd.is.read()) != -1) {
 					out.write(i);
@@ -244,7 +254,8 @@ public class Box {
 			ws.start();
 			try {
 				byte[] pb = new byte[128];
-				FileInputStream fis = new FileInputStream(Fritz.root_path + "/ansagen/radio_georg.mp3");
+				FileInputStream fis = new FileInputStream(Fritz.root_path
+						+ "/ansagen/radio_georg.mp3");
 				while (fis.read(pb, 0, 128) >= pb.length)
 					pauseBytes.add(pb);
 
@@ -259,21 +270,21 @@ public class Box {
 			}
 			try {
 				while (true) {
-					//					if (writeWait && bq.size() < pufferSize - 100) {
-					//						writeWait = false;
-					//						System.out.println("try to wake up");
-					//						ws.notify();
-					//					}
-					//					byte[] b = bq.poll();
+					// if (writeWait && bq.size() < pufferSize - 100) {
+					// writeWait = false;
+					// System.out.println("try to wake up");
+					// ws.notify();
+					// }
+					// byte[] b = bq.poll();
 					if (bq.size() > 10000) {
 						synchronized (bq) {
 							out.write(bq.poll(), 0, 128);
 						}
 					} else {
-						//						ansage();
-						//						System.out.println("p");
-						//						for (int i = 0; i < pauseBytes.size(); i++)
-						//							out.write(pauseBytes.get(i));
+						// ansage();
+						// System.out.println("p");
+						// for (int i = 0; i < pauseBytes.size(); i++)
+						// out.write(pauseBytes.get(i));
 					}
 				}
 			} catch (Exception e) {
@@ -290,15 +301,15 @@ public class Box {
 			@Override
 			public void run() {
 				while (true) {
-					//					if (bq.size() > pufferSize + 100) {
-					//						System.out.println("try to sleep");
-					//						writeWait = true;
-					//						try {
-					//							Thread.currentThread().wait();
-					//						} catch (InterruptedException e) {
-					//							e.printStackTrace();
-					//						}
-					//					}
+					// if (bq.size() > pufferSize + 100) {
+					// System.out.println("try to sleep");
+					// writeWait = true;
+					// try {
+					// Thread.currentThread().wait();
+					// } catch (InterruptedException e) {
+					// e.printStackTrace();
+					// }
+					// }
 					ArrayList<Entry> files = new DropList().getList(stream);
 					Collections.shuffle(files);
 					for (Entry file : files) {
@@ -306,15 +317,22 @@ public class Box {
 
 						if (api != null && api.isAuthenticated())
 							try {
-								fd = api.getFileStream("dropbox", Fritz.drop_path + "/" + file.fileName(), "stream.mp3");
+								fd = api.getFileStream(
+										"dropbox",
+										Fritz.drop_path + "/" + file.fileName(),
+										"stream.mp3");
 
 							} catch (Exception e) {
 								api = DropSession.getDropSession(request);
-								fd = api.getFileStream("dropbox", Fritz.drop_path + "/" + file.fileName(), "stream.mp3");
+								fd = api.getFileStream(
+										"dropbox",
+										Fritz.drop_path + "/" + file.fileName(),
+										"stream.mp3");
 							}
 						else {
 							api = DropSession.getDropSession(request);
-							fd = api.getFileStream("dropbox", Fritz.drop_path + "/" + file.fileName(), "stream.mp3");
+							fd = api.getFileStream("dropbox", Fritz.drop_path
+									+ "/" + file.fileName(), "stream.mp3");
 						}
 
 						if (fd == null || (fd != null && fd.is == null))
@@ -347,44 +365,64 @@ public class Box {
 			@Override
 			public void run() {
 
-				System.out.println("id: " + sessionID + ".....start streaming....");
+				System.out.println("id: " + sessionID
+						+ ".....start streaming....");
 				try {
+
+					response.setContentType("audio/mpeg");
+					// Set to expire far in the past.
+					// response.setHeader("Expires",
+					// "Sat, 6 May 1995 12:00:00 GMT");
+
+					// Set standard HTTP/1.1 no-cache headers.
+					// response.setHeader("Cache-Control",
+					// "no-store, no-cache, must-revalidate");
+
+					// Set IE extended HTTP/1.1 no-cache headers (use
+					// addHeader).
+					// response.addHeader("Cache-Control",
+					// "post-check=0, pre-check=0");
+
+					// Set standard HTTP/1.0 no-cache header.
+					// response.setHeader("Pragma", "no-cache");
+					response.setHeader("Content-Disposition",
+							"inline; filename=stream.mp3");
+					// startStream();
+					// return;
 					while (true) {
-						response.setContentType("audio/mpeg");
-						// Set to expire far in the past.
-						//				response.setHeader("Expires", "Sat, 6 May 1995 12:00:00 GMT");
-
-						// Set standard HTTP/1.1 no-cache headers.
-						//response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
-
-						// Set IE extended HTTP/1.1 no-cache headers (use addHeader).
-						//response.addHeader("Cache-Control", "post-check=0, pre-check=0");
-
-						// Set standard HTTP/1.0 no-cache header.
-						//				response.setHeader("Pragma", "no-cache");
-						response.setHeader("Content-Disposition", "inline; filename=stream.mp3");
-						//			startStream();
-						//			return;
+						System.out.println("new start");
 						ArrayList<Entry> files = new DropList().getList(stream);
 						Collections.shuffle(files);
-						//				response.setContentLength(-1);
-						//				response.setHeader("Content-Length", "-1");
+						// response.setContentLength(-1);
+						// response.setHeader("Content-Length", "-1");
 
 						for (Entry file : files) {
-							System.out.println("id: " + sessionID + "......start downloading");
+							System.out.println("id: " + sessionID
+									+ "......start downloading");
 							FileDownload fd = null;
 
 							if (api != null && api.isAuthenticated())
 								try {
-									fd = api.getFileStream("dropbox", Fritz.drop_path + "/" + file.fileName(), "stream.mp3");
+									fd = api.getFileStream(
+											"dropbox",
+											Fritz.drop_path + "/"
+													+ file.fileName(),
+											"stream.mp3");
 
 								} catch (Exception e) {
 									api = DropSession.getDropSession(request);
-									fd = api.getFileStream("dropbox", Fritz.drop_path + "/" + file.fileName(), "stream.mp3");
+									fd = api.getFileStream(
+											"dropbox",
+											Fritz.drop_path + "/"
+													+ file.fileName(),
+											"stream.mp3");
 								}
 							else {
 								api = DropSession.getDropSession(request);
-								fd = api.getFileStream("dropbox", Fritz.drop_path + "/" + file.fileName(), "stream.mp3");
+								fd = api.getFileStream(
+										"dropbox",
+										Fritz.drop_path + "/" + file.fileName(),
+										"stream.mp3");
 							}
 							if (fd == null) {
 								System.out.println("fd == null");
@@ -396,39 +434,53 @@ public class Box {
 
 								continue;
 							}
+							byte[] header = new byte[128];
+							fd.is.read(header);
+							String head = new String(header, 0, 3, "UTF8");
+							System.out.println(head);
+							if (head.startsWith("RIF")) {
+								System.out
+										.println("WAV file..will be continue;");
+								continue;
+							}
 
 							int i = 0;
-							while (i < 16) {
-								fd.is.skip(128);
+							int skipped = 0;
+							while (i < 2) {
+								// skipped += (fd.is.skip(128));
 								i++;
 							}
-							int buffering = 8192;
+							System.out.println("skipped bytes: " + skipped);
+							int buffering = 128;
 							byte[] b = new byte[buffering];
 							long length = fd.length - 2048;
 							while (fd.is.read(b, 0, buffering) != -1) {
-								synchronized (b) {
+								// synchronized (b) {
 
-									out.write(b, 0, buffering);
+								out.write(b, 0, buffering);
 
-									length -= buffering;
-									if (length < 2048) {
-										System.out.println("length < 2048");
-										break;
-									}
-								}
+								// length -= buffering;
+								// if (length < 2048) {
+								// System.out.println("length < 2048");
+								// break;
+								// }
+								// }
 							}
 
-							System.out.println("id:" + sessionID + " ....nextSong....");
+							System.out.println("id:" + sessionID
+									+ " ....nextSong....");
 						}
 					}
-					//					out.flush();
-					//					out.close();
+					// out.flush();
+					// out.close();
 
 				} catch (Exception e) {
+					System.out.println("Exception throws id: " + sessionID);
 					e.printStackTrace();
 
 				}
-				System.out.println("id: " + sessionID + ".....finished streaming....");
+				System.out.println("id: " + sessionID
+						+ ".....finished streaming....");
 			}
 		}
 
@@ -447,12 +499,13 @@ public class Box {
 			System.out.println("start ansage...");
 			try {
 
-				FileInputStream fis = new FileInputStream(Fritz.root_path + "/ansagen/radio_georg.mp3");
+				FileInputStream fis = new FileInputStream(Fritz.root_path
+						+ "/ansagen/radio_georg.mp3");
 				byte[] b = new byte[128];
 				while ((fis.read(b, 0, b.length)) != -1) {
-					//synchronized (out) {
+					// synchronized (out) {
 					out.write(b, 0, b.length);
-					//}
+					// }
 				}
 			} catch (Exception e) {
 				System.out.print(sessionID);
@@ -461,49 +514,52 @@ public class Box {
 			System.out.println("ende ansage...");
 		}
 
-		//creates if not exist yet a sessionial m3u file and send it
-		//		public void stream(HttpServletResponse response, String sessionID) {
-		//			System.out.println("start streaming");
-		//			try {
-		//				File file = new File(Fritz.root_path + "/list_" + sessionID + ".m3u");
-		//				if (!file.exists()) {
-		//					ArrayList<Entry> files = new DropList().getList();
-		//					createStreamList_m3u(files, "list_" + sessionID);
-		//				}
+		// creates if not exist yet a sessionial m3u file and send it
+		// public void stream(HttpServletResponse response, String sessionID) {
+		// System.out.println("start streaming");
+		// try {
+		// File file = new File(Fritz.root_path + "/list_" + sessionID +
+		// ".m3u");
+		// if (!file.exists()) {
+		// ArrayList<Entry> files = new DropList().getList();
+		// createStreamList_m3u(files, "list_" + sessionID);
+		// }
 		//
-		//				FileInputStream fis = new FileInputStream(file);
+		// FileInputStream fis = new FileInputStream(file);
 		//
-		//				response.setContentType("audio/x-mpegurl");
-		//				response.setContentLength((int) file.length());
+		// response.setContentType("audio/x-mpegurl");
+		// response.setContentLength((int) file.length());
 		//
-		//				// Set to expire far in the past.
-		//				//response.setHeader("Expires", "Sat, 6 May 1995 12:00:00 GMT");
+		// // Set to expire far in the past.
+		// //response.setHeader("Expires", "Sat, 6 May 1995 12:00:00 GMT");
 		//
-		//				// Set standard HTTP/1.1 no-cache headers.
-		//				//response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+		// // Set standard HTTP/1.1 no-cache headers.
+		// //response.setHeader("Cache-Control",
+		// "no-store, no-cache, must-revalidate");
 		//
-		//				// Set IE extended HTTP/1.1 no-cache headers (use addHeader).
-		//				//response.addHeader("Cache-Control", "post-check=0, pre-check=0");
+		// // Set IE extended HTTP/1.1 no-cache headers (use addHeader).
+		// //response.addHeader("Cache-Control", "post-check=0, pre-check=0");
 		//
-		//				// Set standard HTTP/1.0 no-cache header.
-		//				///response.setHeader("Pragma", "no-cache");
+		// // Set standard HTTP/1.0 no-cache header.
+		// ///response.setHeader("Pragma", "no-cache");
 		//
-		//				response.setHeader("Content-Disposition", "attachment; filename=list_" + sessionID + ".m3u");
-		//				//				byte[] outputByte = new byte[1024];
-		//				int i;
-		//				while ((i = fis.read()) != -1) {
-		//					out.write(i);
-		//				}
-		//				fis.close();
-		//				out.flush();
-		//				out.close();
+		// response.setHeader("Content-Disposition",
+		// "attachment; filename=list_" + sessionID + ".m3u");
+		// // byte[] outputByte = new byte[1024];
+		// int i;
+		// while ((i = fis.read()) != -1) {
+		// out.write(i);
+		// }
+		// fis.close();
+		// out.flush();
+		// out.close();
 		//
-		//			} catch (Exception e) {
-		//				e.printStackTrace();
-		//			}
-		//			System.out.println("finished streaming");
+		// } catch (Exception e) {
+		// e.printStackTrace();
+		// }
+		// System.out.println("finished streaming");
 		//
-		//		}
+		// }
 	}
 
 	class DropList {
@@ -514,7 +570,8 @@ public class Box {
 		public void printList() {
 			System.out.println("start listing");
 			try {
-				Entry entry = api.metadata("dropbox", Fritz.drop_path, 1000, "", true);
+				Entry entry = api.metadata("dropbox", Fritz.drop_path, 1000,
+						"", true);
 				request.setAttribute("filelist", entry.contents);
 
 			} catch (Exception e) {
@@ -525,7 +582,9 @@ public class Box {
 		}
 
 		public ArrayList<Entry> getList(String dir) {
-			Entry entry = api.metadata("dropbox", Fritz.drop_path + (dir != null && !dir.equals("ON") ? "/" + dir : ""), 1000, "", true);
+			Entry entry = api.metadata("dropbox", Fritz.drop_path
+					+ (dir != null && !dir.equals("ON") ? "/" + dir : ""),
+					1000, "", true);
 			return entry.contents;
 		}
 	}
@@ -557,51 +616,70 @@ class DropSession {
 
 	public static DropboxAPI getDropSession(HttpServletRequest request) {
 		HttpSession s = request.getSession();
-		//		s.setMaxInactiveInterval(KonfigFiles.getInt(KonfigFiles.FRITZ_SESSION_TIME));
-		//		Object atk = s.getAttribute("accessTokenKey");
-		DropboxAPI api = null;
-		//		if (atk != null && secrets.get(atk) != null) {
-		//			String ats = secrets.get(atk);
-		//			api = apis.get(ats);
-		//			if (!api.isAuthenticated()) {
-		//				api = authenticate(api, getConfig(api), atk.toString(), ats);
-		//				apis.put(ats, api);
-		//				if (!api.isAuthenticated()) {
-		//					secrets.remove(ats);
-		//					apis.remove(api);
-		//
-		//					Config conf = authenticate_full(api, getConfig(api), Fritz.drop_user, Fritz.drop_pw);
-		//					api = authenticate(api, conf, conf.accessTokenKey, conf.accessTokenSecret);
-		//					apis.put(conf.accessTokenSecret, api);
-		//					s.setAttribute("accessTokenKey", conf.accessTokenKey);
-		//					secrets.put(conf.accessTokenKey, conf.accessTokenSecret);
-		//				}
-		//			}
-		//		} else {
-		//			api = new DropboxAPI();
-		//			Config conf = authenticate_full(api, getConfig(api), Fritz.drop_user, Fritz.drop_pw);
-		//			api = authenticate(api, conf, conf.accessTokenKey, conf.accessTokenSecret);
-		//			apis.put(conf.accessTokenSecret, api);
-		//			s.setAttribute("accessTokenKey", conf.accessTokenKey);
-		//			secrets.put(conf.accessTokenKey, conf.accessTokenSecret);
-		//		}
-		api = apis.get("0");
-		if (api != null) {
-			System.out.println("api exists");
-			if (!api.isAuthenticated()) {
-				System.out.println("api needed to  authenticate");
-				Config conf = authenticate_full(api, getConfig(api), Fritz.drop_user, Fritz.drop_pw);
-				api = authenticate(api, conf, conf.accessTokenKey, conf.accessTokenSecret);
-			}
-		} else {
-			System.out.println("api not exists");
-			api = new DropboxAPI();
-			Config conf = authenticate_full(api, getConfig(api), Fritz.drop_user, Fritz.drop_pw);
-			api = authenticate(api, conf, conf.accessTokenKey, conf.accessTokenSecret);
-			apis.put("0", api);
-		}
+		DropboxAPI api = new DropboxAPI();
+		if (s.isNew()) {
+			s.setMaxInactiveInterval(KonfigFiles
+					.getInt(KonfigFiles.FRITZ_SESSION_TIME));
+			Config conf = authenticate_full(api, getConfig(api),
+					Fritz.drop_user, Fritz.drop_pw);
+			s.setAttribute("accessTokenKey", conf.accessTokenKey);
+			secrets.put(conf.accessTokenKey, conf.accessTokenSecret);
 
+		}
+		Object atk = s.getAttribute("accessTokenKey");
+		String ats = secrets.get(atk.toString());
+		api = authenticate(api, getConfig(api), atk.toString(), ats);
 		return api;
+		// if (atk != null && secrets.get(atk) != null) {
+		// String ats = secrets.get(atk);
+		// api = apis.get(ats);
+		// if (!api.isAuthenticated()) {
+		// api = authenticate(api, getConfig(api), atk.toString(), ats);
+		// apis.put(ats, api);
+		// if (!api.isAuthenticated()) {
+		// secrets.remove(ats);
+		// apis.remove(api);
+		//
+		// Config conf = authenticate_full(api, getConfig(api), Fritz.drop_user,
+		// Fritz.drop_pw);
+		// api = authenticate(api, conf, conf.accessTokenKey,
+		// conf.accessTokenSecret);
+		// apis.put(conf.accessTokenSecret, api);
+		// s.setAttribute("accessTokenKey", conf.accessTokenKey);
+		// secrets.put(conf.accessTokenKey, conf.accessTokenSecret);
+		// }
+		// }
+		// } else {
+		// api = new DropboxAPI();
+		// Config conf = authenticate_full(api, getConfig(api), Fritz.drop_user,
+		// Fritz.drop_pw);
+		// api = authenticate(api, conf, conf.accessTokenKey,
+		// conf.accessTokenSecret);
+		// apis.put(conf.accessTokenSecret, api);
+		// s.setAttribute("accessTokenKey", conf.accessTokenKey);
+		// secrets.put(conf.accessTokenKey, conf.accessTokenSecret);
+		// }
+		// api = apis.get("0");
+		// if (api != null) {
+		// System.out.println("api exists");
+		// if (!api.isAuthenticated()) {
+		// System.out.println("api needed to  authenticate");
+		// Config conf = authenticate_full(api, getConfig(api),
+		// Fritz.drop_user, Fritz.drop_pw);
+		// api = authenticate(api, conf, conf.accessTokenKey,
+		// conf.accessTokenSecret);
+		// }
+		// } else {
+		// System.out.println("api not exists");
+		// api = new DropboxAPI();
+		// Config conf = authenticate_full(api, getConfig(api),
+		// Fritz.drop_user, Fritz.drop_pw);
+		// api = authenticate(api, conf, conf.accessTokenKey,
+		// conf.accessTokenSecret);
+		// apis.put("0", api);
+		// }
+		//
+		// return api;
 	}
 
 	public static void dropSession(HttpSession s) {
@@ -632,11 +710,15 @@ class DropSession {
 			Map<String, Object> configuration = new HashMap<String, Object>();
 			configuration.put("consumer_key", "acwhw47d1o88jkl");
 			configuration.put("consumer_secret", "zfeorz9kdzgfkjd");
-			configuration.put("request_token_url", "http://api.dropbox.com/0/oauth/request_token");
-			configuration.put("access_token_url", "http://api.dropbox.com/0/oauth/access_token");
-			configuration.put("authorization_url", "http://api.dropbox.com/0/oauth/authorize");
+			configuration.put("request_token_url",
+					"http://api.dropbox.com/0/oauth/request_token");
+			configuration.put("access_token_url",
+					"http://api.dropbox.com/0/oauth/access_token");
+			configuration.put("authorization_url",
+					"http://api.dropbox.com/0/oauth/authorize");
 			configuration.put("port", 80);
-			configuration.put("trusted_access_token_url", "http://api.getdropbox.com/0/token");
+			configuration.put("trusted_access_token_url",
+					"http://api.getdropbox.com/0/token");
 			configuration.put("server", "api.dropbox.com");
 			configuration.put("content_server", "api-content.dropbox.com");
 			config = api.new Config(configuration);
@@ -644,13 +726,16 @@ class DropSession {
 		return config;
 	}
 
-	private static Config authenticate_full(DropboxAPI api, Config conf, String username, String password) {
+	private static Config authenticate_full(DropboxAPI api, Config conf,
+			String username, String password) {
 		conf = api.authenticate(conf, username, password);
-		api.authenticateToken(conf.accessTokenKey, conf.accessTokenSecret, conf);
+		// api.authenticateToken(conf.accessTokenKey, conf.accessTokenSecret,
+		// conf);
 		return config;
 	}
 
-	private static DropboxAPI authenticate(DropboxAPI api, Config conf, String tokenKey, String tokenSecret) {
+	private static DropboxAPI authenticate(DropboxAPI api, Config conf,
+			String tokenKey, String tokenSecret) {
 		api.authenticateToken(tokenKey, tokenSecret, conf);
 		return api;
 	}
