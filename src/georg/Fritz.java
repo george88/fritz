@@ -40,23 +40,23 @@ public class Fritz extends HttpServlet implements HttpSessionListener {
 		System.out.println("user_agnet: " + request.getHeader("user-agent"));
 		if (request.getParameter("id") != null) {
 			System.out.println("request: download => id = " + request.getParameter("id"));
-			new Box(request).new DropDownload(request.getParameter("id")).download(response);
+			new Box(request, response).new DropDownload(request.getParameter("id")).download();
 		} else if (request.getParameter("stream") != null) {
 			System.out.println("request: stream");
-			new Box(request).new DropStream().stream(response, request.getSession().getId(), request.getParameter("stream"));
+			new Box(request, response).new DropStream().stream();
 		} else if (request.getParameter("reset") != null) {
 			System.out.println("request: reset");
 			KonfigFiles.reset();
 			request.getRequestDispatcher("/index.jsp").forward(request, response);
 		} else if (request.getParameter("podcast") != null) {
 			System.out.println("request: podcast");
-			Box box = new Box(request);
+			Box box = new Box(request, response);
 			box.createPodCast_xml(box.new DropList().getList(null));
 			request.getRequestDispatcher("/list.xml").forward(request, response);
 		} else {
 			System.out.println("request: default");
 			request.setAttribute("index.jsp", "index.jsp");
-			new Box(request).new DropList().printList(request);
+			new Box(request, response).new DropList().printList();
 			request.getRequestDispatcher("/index.jsp").forward(request, response);
 		}
 	}
@@ -71,11 +71,11 @@ public class Fritz extends HttpServlet implements HttpSessionListener {
 		if (request.getParameter("delete") != null) {
 			System.out.println("request for deleting: " + request.getParameter("delete"));
 			request.setAttribute("index.jsp", "index.jsp");
-			new Box(request).new DropDelete().delete(request.getParameter("delete"));
-			new Box(request).new DropList().printList(request);
+			new Box(request, response).new DropDelete().delete(request.getParameter("delete"));
+			new Box(request, response).new DropList().printList();
 			request.getRequestDispatcher("/index.jsp").forward(request, response);
 		} else if (request.getHeader("x-file-name") != null && request.getHeader("x-file-name").endsWith(".mp3")) {
-			new Box(request).new DropUpload(request.getInputStream(), request.getHeader("x-file-name"));
+			new Box(request, response).new DropUpload(request.getInputStream(), request.getHeader("x-file-name"));
 		}
 	}
 

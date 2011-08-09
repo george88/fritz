@@ -1,20 +1,29 @@
 package georg;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.lang.Thread.State;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.Queue;
+
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.DataLine;
+import javax.sound.sampled.TargetDataLine;
+import org.apache.james.mime4j.codec.ByteQueue;
 import org.farng.mp3.MP3File;
 import org.farng.mp3.TagException;
 
@@ -25,11 +34,14 @@ import com.dropbox.client.DropboxAPI.FileDownload;
 
 public class Box {
 
-	private final DropboxAPI api;
+	private DropboxAPI api;
 	private final HttpServletRequest request;
+	private final HttpServletResponse response;
+	ServletOutputStream out;
 
-	public Box(HttpServletRequest request) {
+	public Box(HttpServletRequest request, HttpServletResponse response) {
 		this.request = request;
+		this.response = response;
 		this.api = DropSession.getDropSession(this.request);
 	}
 
@@ -76,6 +88,16 @@ public class Box {
 		private int getRandomFileName() {
 			return (int) (Math.random() * 999999999);
 		}
+	}
+
+	private FileInputStream getStreamFromFile(File file) {
+		FileInputStream fis = null;
+		try {
+			fis = new FileInputStream(file);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		return fis;
 	}
 
 	private String geturlFromFileName(String fileName) {
@@ -153,9 +175,14 @@ public class Box {
 
 		public DropDownload(String fileName) {
 			this.fileName = fileName;
+			try {
+				out = response.getOutputStream();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 
-		public void download(HttpServletResponse response) {
+		public void download() {
 			System.out.println("start downloading");
 			try {
 				FileDownload fd = api.getFileStream("dropbox", Fritz.drop_path + "/" + fileName, fileName);
@@ -174,7 +201,6 @@ public class Box {
 				//				response.setHeader("Pragma", "no-cache");
 
 				response.setHeader("Content-Disposition", "inline;filename=" + fileName);
-				ServletOutputStream out = response.getOutputStream();
 
 				//				byte[] outputByte = new byte[1024];
 				//				while (fd.is.read(outputByte, 0, 1024) != -1) {
@@ -196,61 +222,245 @@ public class Box {
 	}
 
 	class DropStream {
+		String sessionID;
+		String stream;
+		Queue<byte[]> bq = new LinkedList<byte[]>();
+		ArrayList<byte[]> pauseBytes = new ArrayList<byte[]>();
+		boolean writeWait = false;
+		long pufferSize = 10000;
 
-		public void stream(HttpServletResponse response, String sessionID, String stream) {
-			System.out.println("id: " + sessionID + ".....start streaming....");
+		public DropStream() {
+			this.sessionID = request.getSession(false).getId();
+			this.stream = request.getParameter("stream");
 			try {
+				out = response.getOutputStream();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 
-				response.setContentType("audio/mpeg");
-				// Set to expire far in the past.
-				//				response.setHeader("Expires", "Sat, 6 May 1995 12:00:00 GMT");
+		public void startStream() {
+			WriteStream ws = new WriteStream();
+			ws.start();
+			try {
+				byte[] pb = new byte[128];
+				FileInputStream fis = new FileInputStream(Fritz.root_path + "/ansagen/radio_georg.mp3");
+				while (fis.read(pb, 0, 128) >= pb.length)
+					pauseBytes.add(pb);
 
-				// Set standard HTTP/1.1 no-cache headers.
-				response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+			} catch (Exception e2) {
+				e2.printStackTrace();
+			}
 
-				// Set IE extended HTTP/1.1 no-cache headers (use addHeader).
-				response.addHeader("Cache-Control", "post-check=0, pre-check=0");
-
-				// Set standard HTTP/1.0 no-cache header.
-				//				response.setHeader("Pragma", "no-cache");
-				response.setHeader("Content-Disposition", "inline; filename=stream.mp3");
-				ArrayList<Entry> files = new DropList().getList(stream);
-				ServletOutputStream out = response.getOutputStream();
-				Collections.shuffle(files);
-				//				response.setContentLength(-1);
-				//				response.setHeader("Content-Length", "-1");
-
-				for (Entry file : files) {
-					FileDownload fd = null;
-					fd = api.getFileStream("dropbox", Fritz.drop_path + "/" + file.fileName(), "stream.mp3");
-
-					byte[] header = new byte[4096];
-					fd.is.read(header, 0, 4096);
-					//					String h = new String(header);
-					//					System.out.println("\n\nheader(1024 byte):\n" + h + "\n\n");
-
-					byte[] b = new byte[128];
-					int i = 0;
-					long length = fd.length;
-					while (fd.is.read(b, 0, 128) != -1) {
-						out.write(b, 0, 128);
-						length -= 128;
-						if (length < 1024)
-							break;
+			try {
+				Thread.sleep(1500);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			try {
+				while (true) {
+					//					if (writeWait && bq.size() < pufferSize - 100) {
+					//						writeWait = false;
+					//						System.out.println("try to wake up");
+					//						ws.notify();
+					//					}
+					//					byte[] b = bq.poll();
+					if (bq.size() > 10000) {
+						synchronized (bq) {
+							out.write(bq.poll(), 0, 128);
+						}
+					} else {
+						//						ansage();
+						//						System.out.println("p");
+						//						for (int i = 0; i < pauseBytes.size(); i++)
+						//							out.write(pauseBytes.get(i));
 					}
+				}
+			} catch (Exception e) {
+				try {
+					ws.interrupt();
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+				e.printStackTrace();
+			}
+		}
 
-					System.out.println("id:" + sessionID + " ....nextSong....");
+		class WriteStream extends Thread implements Runnable {
+			@Override
+			public void run() {
+				while (true) {
+					//					if (bq.size() > pufferSize + 100) {
+					//						System.out.println("try to sleep");
+					//						writeWait = true;
+					//						try {
+					//							Thread.currentThread().wait();
+					//						} catch (InterruptedException e) {
+					//							e.printStackTrace();
+					//						}
+					//					}
+					ArrayList<Entry> files = new DropList().getList(stream);
+					Collections.shuffle(files);
+					for (Entry file : files) {
+						FileDownload fd = null;
+
+						if (api != null && api.isAuthenticated())
+							try {
+								fd = api.getFileStream("dropbox", Fritz.drop_path + "/" + file.fileName(), "stream.mp3");
+
+							} catch (Exception e) {
+								api = DropSession.getDropSession(request);
+								fd = api.getFileStream("dropbox", Fritz.drop_path + "/" + file.fileName(), "stream.mp3");
+							}
+						else {
+							api = DropSession.getDropSession(request);
+							fd = api.getFileStream("dropbox", Fritz.drop_path + "/" + file.fileName(), "stream.mp3");
+						}
+
+						if (fd == null || (fd != null && fd.is == null))
+							continue;
+						byte[] b = new byte[128];
+						try {
+							System.out.println("start downloading");
+							while ((fd.is.read(b, 0, b.length)) != -1) {
+								synchronized (bq) {
+									bq.add(b);
+								}
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+				}
+			}
+		}
+
+		DropStreamThread dst;
+		AnsageStreamThread ast;
+
+		public void stream() {
+			dst = new DropStreamThread();
+			dst.run();
+		}
+
+		class DropStreamThread extends Thread {
+			@Override
+			public void run() {
+
+				System.out.println("id: " + sessionID + ".....start streaming....");
+				try {
+					while (true) {
+						response.setContentType("audio/mpeg");
+						// Set to expire far in the past.
+						//				response.setHeader("Expires", "Sat, 6 May 1995 12:00:00 GMT");
+
+						// Set standard HTTP/1.1 no-cache headers.
+						//response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+
+						// Set IE extended HTTP/1.1 no-cache headers (use addHeader).
+						//response.addHeader("Cache-Control", "post-check=0, pre-check=0");
+
+						// Set standard HTTP/1.0 no-cache header.
+						//				response.setHeader("Pragma", "no-cache");
+						response.setHeader("Content-Disposition", "inline; filename=stream.mp3");
+						//			startStream();
+						//			return;
+						ArrayList<Entry> files = new DropList().getList(stream);
+						Collections.shuffle(files);
+						//				response.setContentLength(-1);
+						//				response.setHeader("Content-Length", "-1");
+
+						for (Entry file : files) {
+							System.out.println("id: " + sessionID + "......start downloading");
+							FileDownload fd = null;
+
+							if (api != null && api.isAuthenticated())
+								try {
+									fd = api.getFileStream("dropbox", Fritz.drop_path + "/" + file.fileName(), "stream.mp3");
+
+								} catch (Exception e) {
+									api = DropSession.getDropSession(request);
+									fd = api.getFileStream("dropbox", Fritz.drop_path + "/" + file.fileName(), "stream.mp3");
+								}
+							else {
+								api = DropSession.getDropSession(request);
+								fd = api.getFileStream("dropbox", Fritz.drop_path + "/" + file.fileName(), "stream.mp3");
+							}
+							if (fd == null) {
+								System.out.println("fd == null");
+								continue;
+							}
+
+							if (fd.is == null) {
+								System.out.println("fd.is == null");
+
+								continue;
+							}
+
+							int i = 0;
+							while (i < 16) {
+								fd.is.skip(128);
+								i++;
+							}
+							int buffering = 8192;
+							byte[] b = new byte[buffering];
+							long length = fd.length - 2048;
+							while (fd.is.read(b, 0, buffering) != -1) {
+								synchronized (b) {
+
+									out.write(b, 0, buffering);
+
+									length -= buffering;
+									if (length < 2048) {
+										System.out.println("length < 2048");
+										break;
+									}
+								}
+							}
+
+							System.out.println("id:" + sessionID + " ....nextSong....");
+						}
+					}
+					//					out.flush();
+					//					out.close();
+
+				} catch (Exception e) {
+					e.printStackTrace();
 
 				}
-				out.flush();
-				out.close();
-			} catch (Exception e) {
-				System.out.println("id:" + sessionID + "....Exception....LAST\n" + e.getCause());
-
+				System.out.println("id: " + sessionID + ".....finished streaming....");
 			}
-			System.out.println("id: " + sessionID + ".....finished streaming....");
-
 		}
+
+		AudioFormat audioFormat;
+		DataLine.Info dataLineInfo;
+		TargetDataLine targetDataLine;
+
+		class AnsageStreamThread extends Thread {
+			@Override
+			public void run() {
+				ansage();
+			}
+		}
+
+		private void ansage() {
+			System.out.println("start ansage...");
+			try {
+
+				FileInputStream fis = new FileInputStream(Fritz.root_path + "/ansagen/radio_georg.mp3");
+				byte[] b = new byte[128];
+				while ((fis.read(b, 0, b.length)) != -1) {
+					//synchronized (out) {
+					out.write(b, 0, b.length);
+					//}
+				}
+			} catch (Exception e) {
+				System.out.print(sessionID);
+				e.printStackTrace();
+			}
+			System.out.println("ende ansage...");
+		}
+
 		//creates if not exist yet a sessionial m3u file and send it
 		//		public void stream(HttpServletResponse response, String sessionID) {
 		//			System.out.println("start streaming");
@@ -279,7 +489,6 @@ public class Box {
 		//				///response.setHeader("Pragma", "no-cache");
 		//
 		//				response.setHeader("Content-Disposition", "attachment; filename=list_" + sessionID + ".m3u");
-		//				ServletOutputStream out = response.getOutputStream();
 		//				//				byte[] outputByte = new byte[1024];
 		//				int i;
 		//				while ((i = fis.read()) != -1) {
@@ -302,7 +511,7 @@ public class Box {
 		public DropList() {
 		}
 
-		public void printList(HttpServletRequest request) {
+		public void printList() {
 			System.out.println("start listing");
 			try {
 				Entry entry = api.metadata("dropbox", Fritz.drop_path, 1000, "", true);
@@ -337,7 +546,6 @@ public class Box {
 
 		}
 	}
-
 }
 
 class DropSession {
